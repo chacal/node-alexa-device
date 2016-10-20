@@ -25,6 +25,9 @@ function sendSpeechRequest() {
     .then(accessToken => {
       const BOUNDARY = uuid()
       const req = avsPOSTMultipart('/events', BOUNDARY, accessToken)
+      req.write(jsonPart(BOUNDARY, createRecognizeEvent()))
+      req.write(audioPartStart(BOUNDARY))
+      streamAudioFromMic(req)
 
       req.on('response', function(response) {
         handleResponse(response)
@@ -34,10 +37,6 @@ function sendSpeechRequest() {
       req.on('error', function(response) {
         response.pipe(process.stderr)
       })
-
-      req.write(jsonPart(BOUNDARY, createRecognizeEvent()))
-      req.write(audioPartStart(BOUNDARY))
-      streamAudioFromMic(req)
     })
 }
 
