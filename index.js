@@ -38,19 +38,9 @@ function sendSpeechRequest() {
 
       req.write(jsonPart('--this-is-a-boundary', createRecognizeEvent()))
       req.write(audioPartStart('--this-is-a-boundary'))
-
-      const recording = record.start()
-      recording.on('data', data => req.write(data))
-      recording.on('end', data => {
-          console.log('Recording ended.')
-          req.write(`--this-is-a-boundary--`)
-          req.end()
-        }
-      )
+      streamAudioFromMic(req)
     })
 }
-
-
 
 
 function registerForDirectives() {
@@ -142,6 +132,12 @@ function jsonPart(boundary, json) {
 
 function audioPartStart(boundary) {
   return boundary + `\nContent-Disposition: form-data; name="audio"\nContent-Type: application/octet-stream\n\n`
+}
+
+function streamAudioFromMic(request) {
+  const recording = record.start()
+  recording.on('data', data => request.write(data))
+  recording.on('end', () => request.end())
 }
 
 function createRecognizeEvent() {
