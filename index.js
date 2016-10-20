@@ -114,7 +114,7 @@ function uuid() {
 
 
 function handleResponse(response) {
-  const contentType = response.headers['content-type']
+  const contentType = response.headers['content-type'] || ""
   if(contentType.indexOf('multipart/') > -1) {
     var form = new multiparty.Form()
     form.on('error', function(err) {
@@ -158,6 +158,6 @@ function handleResponse(response) {
       console.log('Got JSON:', JSON.stringify(JSON.parse(buf.getContentsAsString('utf8')), null, 2))
     })
   } else {
-    console.log('Unknown content type:', contentType)
+    console.log(`Unknown content type. Status: ${response.statusCode} Headers: ${response.headers}`)
   }
 }
