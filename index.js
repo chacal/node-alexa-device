@@ -6,48 +6,18 @@ const multiparty = require('multiparty')
 const streamBuffers = require('stream-buffers')
 const player = require('play-sound')()
 const record = require('node-record-lpcm16')
-const {Detector, Models} = require('snowboy')
 const BPromise = require('bluebird')
 const TokenProvider = require('refresh-token')
+const WakeWordDetector = require('./wakeword-detector.js')
 
 const AVS_API_URL = 'https://avs-alexa-na.amazon.com/v20160207'
 const AVS_CREDENTIALS = JSON.parse(fs.readFileSync('./avs-credentials.json'))
 const tokenProvider = BPromise.promisifyAll(new TokenProvider('https://api.amazon.com/auth/o2/token', AVS_CREDENTIALS))
 
+const wakeWordDetector = new WakeWordDetector(sendSpeechRequest)
 
 registerForDirectives()
-  .then(startWakeWordDetection)
-
-
-function startWakeWordDetection() {
-  console.log('Starting wake word detection..')
-  const models = new Models()
-
-  models.add({
-    file: 'resources/alexa.umdl',
-    sensitivity: '0.8',
-    hotwords: 'alexa'
-  })
-
-  const detector = new Detector({
-    resource: "resources/common.res",
-    models: models,
-    audioGain: 2.0
-  })
-
-  detector.on('hotword', function(index, hotword) {
-    console.log('Wake word detected:', index, hotword)
-    record.stop()
-  })
-
-  const mic = record.start({ threshold: 0 })
-  mic.pipe(detector)
-  mic.on('end', data => {
-      console.log('Recording wake work ended. Starting speech request.')
-      sendSpeechRequest()
-    }
-  )
-}
+  .then(() => wakeWordDetector.start())
 
 
 function sendSpeechRequest() {
@@ -65,7 +35,7 @@ function sendSpeechRequest() {
       req.on('response', function(response) {
         console.log('Got streaming response', response.headers)
         handleResponse(response)
-        response.on('end', startWakeWordDetection)
+        response.on('end', () => wakeWordDetector.start())
       })
 
       req.on('error', function(response) {
