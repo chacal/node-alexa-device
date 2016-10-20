@@ -31,9 +31,7 @@ function sendSpeechRequest() {
       })
 
       req.on('error', function(response) {
-        console.log('ERROR')
-        response.pipe(process.stdout)
-        response.on('end', () => console.log('All done!'))
+        response.pipe(process.stderr)
       })
 
       req.write(jsonPart('--this-is-a-boundary', createRecognizeEvent()))
