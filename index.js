@@ -33,7 +33,6 @@ function sendSpeechRequest() {
       )
 
       req.on('response', function(response) {
-        console.log('Got streaming response', response.headers)
         handleResponse(response)
         response.on('end', () => wakeWordDetector.start())
       })
@@ -44,25 +43,8 @@ function sendSpeechRequest() {
         response.on('end', () => console.log('All done!'))
       })
 
+      req.write(jsonPart('--this-is-a-boundary', createRecognizeEvent()))
       req.write(`--this-is-a-boundary
-Content-Disposition: form-data; name="metadata"
-Content-Type: application/json; charset=UTF-8
-
-{
-    "event": {
-        "header": {
-            "namespace": "SpeechRecognizer",
-            "name": "Recognize",
-            "messageId": "${uuid()}",
-            "dialogRequestId": "${uuid()}"
-        },
-        "payload": {
-            "profile": "NEAR_FIELD",
-            "format": "AUDIO_L16_RATE_16000_CHANNELS_1"
-        }
-    }
-}
---this-is-a-boundary
 Content-Disposition: form-data; name="audio"
 Content-Type: application/octet-stream
 
@@ -100,16 +82,6 @@ function registerForDirectives() {
 
       directivesReq.end()
     })
-}
-
-
-
-
-function uuid() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8)
-    return v.toString(16)
-  })
 }
 
 
@@ -160,4 +132,33 @@ function handleResponse(response) {
   } else {
     console.log(`Unknown content type. Status: ${response.statusCode} Headers: ${response.headers}`)
   }
+}
+
+
+function jsonPart(boundary, json) {
+  return boundary + '\nContent-Disposition: form-data; name="metadata\nContent-Type: application/json; charset=UTF-8\n\n' + JSON.stringify(json) + '\n'
+}
+
+function createRecognizeEvent() {
+  return {
+    "event": {
+      "header": {
+        "namespace": "SpeechRecognizer",
+        "name": "Recognize",
+        "messageId": uuid(),
+        "dialogRequestId": uuid()
+      },
+      "payload": {
+        "profile": "NEAR_FIELD",
+        "format": "AUDIO_L16_RATE_16000_CHANNELS_1"
+      }
+    }
+  }
+}
+
+function uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8)
+    return v.toString(16)
+  })
 }
