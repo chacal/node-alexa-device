@@ -1,8 +1,7 @@
 const record = require('node-record-lpcm16')
 const {Detector, Models} = require('snowboy')
 
-function WakeWordDetector(wakeWordDetectedCallback) {
-  this.callback = wakeWordDetectedCallback
+function WakeWordDetector() {
   this.models = new Models()
 
   this.models.add({
@@ -12,7 +11,7 @@ function WakeWordDetector(wakeWordDetectedCallback) {
   })
 }
 
-WakeWordDetector.prototype.start = function() {
+WakeWordDetector.prototype.start = function(wakeWordDetectedCallback) {
   console.log('Starting wake word detection..')
 
   const detector = new Detector({
@@ -27,7 +26,7 @@ WakeWordDetector.prototype.start = function() {
   })
 
   const mic = record.start({ threshold: 0 })
-  mic.on('end', () => this.callback())
+  mic.on('end', () => wakeWordDetectedCallback())
   mic.pipe(detector)
 }
 
