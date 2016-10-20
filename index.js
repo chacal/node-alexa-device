@@ -23,7 +23,8 @@ registerForDirectives()
 function sendSpeechRequest() {
   return tokenProvider.getTokenAsync()
     .then(accessToken => {
-      const req = avsPOSTMultipart('/events', 'this-is-a-boundary', accessToken)
+      const BOUNDARY = uuid()
+      const req = avsPOSTMultipart('/events', BOUNDARY, accessToken)
 
       req.on('response', function(response) {
         handleResponse(response)
@@ -34,8 +35,8 @@ function sendSpeechRequest() {
         response.pipe(process.stderr)
       })
 
-      req.write(jsonPart('--this-is-a-boundary', createRecognizeEvent()))
-      req.write(audioPartStart('--this-is-a-boundary'))
+      req.write(jsonPart(BOUNDARY, createRecognizeEvent()))
+      req.write(audioPartStart(BOUNDARY))
       streamAudioFromMic(req)
     })
 }
@@ -125,11 +126,11 @@ function avsPOSTMultipart(path, boundary, accessToken) {
 
 
 function jsonPart(boundary, json) {
-  return boundary + '\nContent-Disposition: form-data; name="metadata\nContent-Type: application/json; charset=UTF-8\n\n' + JSON.stringify(json) + '\n'
+  return '--' + boundary + '\nContent-Disposition: form-data; name="metadata\nContent-Type: application/json; charset=UTF-8\n\n' + JSON.stringify(json) + '\n'
 }
 
 function audioPartStart(boundary) {
-  return boundary + `\nContent-Disposition: form-data; name="audio"\nContent-Type: application/octet-stream\n\n`
+  return '--' + boundary + `\nContent-Disposition: form-data; name="audio"\nContent-Type: application/octet-stream\n\n`
 }
 
 function streamAudioFromMic(request) {
