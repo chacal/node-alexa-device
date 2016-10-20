@@ -23,14 +23,7 @@ registerForDirectives()
 function sendSpeechRequest() {
   return tokenProvider.getTokenAsync()
     .then(accessToken => {
-      const req = http.request(_.assign({}, url.parse(AVS_API_URL + '/events'), {
-          method: 'POST',
-          headers: {
-            authorization: 'Bearer ' + accessToken,
-            'content-type': 'multipart/form-data; boundary=this-is-a-boundary'
-          }
-        })
-      )
+      const req = avsPOSTMultipart('/events', 'this-is-a-boundary', accessToken)
 
       req.on('response', function(response) {
         handleResponse(response)
@@ -44,11 +37,7 @@ function sendSpeechRequest() {
       })
 
       req.write(jsonPart('--this-is-a-boundary', createRecognizeEvent()))
-      req.write(`--this-is-a-boundary
-Content-Disposition: form-data; name="audio"
-Content-Type: application/octet-stream
-
-`)
+      req.write(audioPartStart('--this-is-a-boundary'))
 
       const recording = record.start()
       recording.on('data', data => req.write(data))
@@ -135,8 +124,24 @@ function handleResponse(response) {
 }
 
 
+function avsPOSTMultipart(path, boundary, accessToken) {
+  return http.request(_.assign({}, url.parse(AVS_API_URL + path), {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer ' + accessToken,
+        'content-type': `multipart/form-data; boundary=${boundary}`
+      }
+    })
+  )
+}
+
+
 function jsonPart(boundary, json) {
   return boundary + '\nContent-Disposition: form-data; name="metadata\nContent-Type: application/json; charset=UTF-8\n\n' + JSON.stringify(json) + '\n'
+}
+
+function audioPartStart(boundary) {
+  return boundary + `\nContent-Disposition: form-data; name="audio"\nContent-Type: application/octet-stream\n\n`
 }
 
 function createRecognizeEvent() {
