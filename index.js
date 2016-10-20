@@ -28,7 +28,7 @@ function sendSpeechRequest() {
 
       req.on('response', function(response) {
         handleResponse(response)
-        response.on('end', () => wakeWordDetector.start())
+        response.on('end', () => wakeWordDetector.start(sendSpeechRequest))
       })
 
       req.on('error', function(response) {
