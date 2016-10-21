@@ -18,7 +18,7 @@ AvsResponseHandler.prototype.handleResponse = function (response) {
   } else if(isOctetStream()) {
     handleBinaryResponse(response)
   } else {
-    console.log(`Unknown content type: ${contentType}, status: ${response.statusCode}, headers: ${response.headers}`)
+    console.log(`Unknown content type: ${contentType}, status: ${response.statusCode}, headers: ${JSON.stringify(response.headers)}`)
   }
 
 
