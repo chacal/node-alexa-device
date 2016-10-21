@@ -53,52 +53,69 @@ function registerForDirectives() {
 
 function handleResponse(response) {
   const contentType = response.headers['content-type'] || ""
-  if(contentType.indexOf('multipart/') > -1) {
-    var form = new multiparty.Form()
-    form.on('error', function(err) {
-      console.log('Error parsing response', err)
-    })
 
-    form.on('part', function(part) {
-      const buf = new streamBuffers.WritableStreamBuffer()
-      part.pipe(buf)
-      part.on('end', () => {
-        switch(part.headers['content-type']) {
-          case 'application/json; charset=UTF-8':
-            console.log('Got JSON:', JSON.stringify(JSON.parse(buf.getContentsAsString('utf8')), null, 2))
-            break;
-          case 'application/json':
-            console.log('Got JSON:', JSON.stringify(JSON.parse(buf.getContentsAsString('utf8')), null, 2))
-            record.stop()
-            break;
-          case 'application/octet-stream':
-            //console.log('Got binary data, length: ', buf.getContents().length)
-            fs.writeFileSync('./output.mp3', buf.getContents())
-            player.play('./output.mp3')
-            break;
-          default:
-            console.log('Got ' + part.headers['content-type'], buf.getContents().length)
-            break;
-        }
-      })
-
-      part.on('error', function(err) {
-        console.log("Error on part " + part)
-        part.resume()
-      })
-    })
-
-    form.parse(response)
-  } else if(contentType.indexOf('application/json') > -1) {
-    const buf = new streamBuffers.WritableStreamBuffer()
-    response.pipe(buf)
-    response.on('end', () => {
-      console.log('Got JSON:', JSON.stringify(JSON.parse(buf.getContentsAsString('utf8')), null, 2))
-    })
+  if(isMultipart()) {
+    handleMultipartResponse(response)
+  } else if(isJson()) {
+    handleJsonResponse(response)
+  } else if(isOctetStream()) {
+    handleBinaryResponse(response)
   } else {
-    console.log(`Unknown content type. Status: ${response.statusCode} Headers: ${response.headers}`)
+    console.log(`Unknown content type: ${contentType}, status: ${response.statusCode}, headers: ${response.headers}`)
+  }
+
+  function isMultipart() { return _.includes(contentType, 'multipart/') }
+  function isJson() { return _.includes(contentType, 'application/json') }
+  function isOctetStream() { return _.includes(contentType, 'application/octet-stream') }
+}
+
+function handleMultipartResponse(response) {
+  var form = new multiparty.Form()
+  form.on('error', function(err) {
+    console.log('Error parsing response', err)
+  })
+
+  form.on('part', function(part) {
+    handleResponse(part)
+  })
+
+  form.parse(response)
+}
+
+function handleJsonResponse(response) {
+  const buf = new streamBuffers.WritableStreamBuffer()
+  response.pipe(buf)
+  response.on('end', () => {
+    handleJsonMessage(JSON.parse(buf.getContentsAsString('utf8')))
+  })
+}
+
+function handleBinaryResponse(response) {
+  response.pipe(fs.createWriteStream('./output.mp3'))
+  response.on('end', () => player.play('./output.mp3'))
+}
+
+
+
+function handleJsonMessage(message) {
+  if(message.directive) {
+    handleDirective(message.directive)
+  } else {
+    console.log('Got unknown JSON message!', JSON.stringify(message, null, 2))
+  }
+
+  function handleDirective(directive) {
+    if(directive.header.name === 'StopCapture') {
+      onStopCaptureDirective()
+    } else if(directive.header.name === 'Speak') {
+      // Don't need to handle, binary content will be played back automatically when it arrives
+    } else {
+      console.log('Got unknown directive!', JSON.stringify(directive, null, 2))
+    }
   }
 }
+
+function onStopCaptureDirective() { record.stop() }
 
 
 function avsPOSTMultipart(path, boundary, accessToken) {
