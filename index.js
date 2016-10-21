@@ -21,9 +21,8 @@ registerForDirectives()
 function sendSpeechRequest() {
   return tokenProvider.getTokenAsync()
     .then(accessToken => {
-      avsRequestUtils.createRecognizeSpeechRequest(record.start(), accessToken).on('response', response => {
-        avsResponseHandler.handleResponse(response)
-      })
+      avsRequestUtils.createRecognizeSpeechRequest(record.start(), accessToken)
+        .on('response', response => avsResponseHandler.handleResponse(response))
     })
 }
 
@@ -31,9 +30,8 @@ function sendSpeechRequest() {
 function registerForDirectives() {
   return tokenProvider.getTokenAsync()
     .then(accessToken => {
-      avsRequestUtils.avsGET('/directives', accessToken).on('response', response => {
-        avsResponseHandler.handleResponse(response)
-      })
+      avsRequestUtils.avsGET('/directives', accessToken)
+        .on('response', response => avsResponseHandler.handleResponse(response))
     })
 }
 
