@@ -44,20 +44,9 @@ function sendSpeechRequest() {
 function registerForDirectives() {
   return tokenProvider.getTokenAsync()
     .then(accessToken => {
-      const directivesReq = http.request(_.assign({}, url.parse(AVS_API_URL + '/directives'), {
-          method: 'GET',
-          headers: {
-            authorization: 'Bearer ' + accessToken
-          }
-        })
-      )
-
-      directivesReq.on('response', function(response) {
-        console.log('Got directives response', response.headers)
+      avsGET('/directives', accessToken).on('response', function(response) {
         handleResponse(response)
       })
-
-      directivesReq.end()
     })
 }
 
@@ -121,6 +110,13 @@ function avsPOSTMultipart(path, boundary, accessToken) {
       }
     })
   )
+}
+
+function avsGET(path, accessToken) {
+  return http.request(_.assign({}, url.parse(AVS_API_URL + path), {
+    method: 'GET',
+    headers: { authorization: 'Bearer ' + accessToken }
+  }))
 }
 
 
