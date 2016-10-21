@@ -12,7 +12,7 @@ const AVS_CREDENTIALS = require('./avs-credentials.json')
 const tokenProvider = BPromise.promisifyAll(new TokenProvider('https://api.amazon.com/auth/o2/token', AVS_CREDENTIALS))
 
 const wakeWordDetector = new WakeWordDetector()
-const avsResponseHandler = new AvsResponseHandler(handleDirective, handleAudio)
+const avsResponseHandler = new AvsResponseHandler(handleDirective, playAudio)
 
 registerForDirectives()
   .then(() => wakeWordDetector.start(sendSpeechRequest))
@@ -52,7 +52,7 @@ function onStopCaptureDirective() { record.stop() }
 
 
 
-function handleAudio(audioContent) {
+function playAudio(audioContent) {
   fs.writeFileSync('./output.mp3', audioContent)
   player.play('./output.mp3', () => wakeWordDetector.start(sendSpeechRequest))
 }
