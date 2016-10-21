@@ -10,7 +10,7 @@ const WakeWordDetector = require('./wakeword-detector.js')
 const AvsResponseHandler = require('./avs-response-handling.js')
 
 const AVS_API_URL = 'https://avs-alexa-na.amazon.com/v20160207'
-const AVS_CREDENTIALS = JSON.parse(fs.readFileSync('./avs-credentials.json'))
+const AVS_CREDENTIALS = require('./avs-credentials.json')
 const tokenProvider = BPromise.promisifyAll(new TokenProvider('https://api.amazon.com/auth/o2/token', AVS_CREDENTIALS))
 
 const wakeWordDetector = new WakeWordDetector()
