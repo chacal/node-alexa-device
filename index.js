@@ -18,10 +18,10 @@ registerForDirectives()
   .then(() => wakeWordDetector.start(sendSpeechRequest))
 
 
-function sendSpeechRequest() {
+function sendSpeechRequest(audioStream) {
   return tokenProvider.getTokenAsync()
     .then(accessToken => {
-      avsRequestUtils.createRecognizeSpeechRequest(record.start(), accessToken)
+      avsRequestUtils.createRecognizeSpeechRequest(audioStream, accessToken)
         .on('response', response => avsResponseHandler.handleResponse(response))
     })
 }

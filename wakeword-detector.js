@@ -22,11 +22,11 @@ WakeWordDetector.prototype.start = function(wakeWordDetectedCallback) {
 
   detector.on('hotword', function(index, hotword) {
     console.log('Wake word detected:', index, hotword)
-    record.stop()
+    mic.unpipe(detector)
+    wakeWordDetectedCallback(mic)
   })
 
   const mic = record.start({ threshold: 0 })
-  mic.on('end', () => wakeWordDetectedCallback())
   mic.pipe(detector)
 }
 
