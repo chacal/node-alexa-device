@@ -13,7 +13,7 @@
     "http2": "^3.3.6",
     "lodash": "^4.16.4",
     "multiparty": "^4.1.2",
-    "node-record-lpcm16": "^0.1.4",
+    "node-record-lpcm16": "https://github.com/chacal/node-record-lpcm16",
     "play-sound": "^1.0.0",
     "refresh-token": "^0.1.0",
     "snowboy": "^1.1.0",
