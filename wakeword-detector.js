@@ -26,7 +26,7 @@ WakeWordDetector.prototype.start = function(wakeWordDetectedCallback) {
     wakeWordDetectedCallback(mic)
   })
 
-  const mic = record.start({ threshold: 0 })
+  const mic = record.start({ threshold: 0, gain: 10 })
   mic.pipe(detector)
 }
 
