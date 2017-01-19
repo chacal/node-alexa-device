@@ -51,6 +51,6 @@ function onStopCaptureDirective() { record.stop() }
 
 
 function playAudio(audioContent) {
-  fs.writeFileSync('./output.mp3', audioContent)
-  player.play('./output.mp3', () => wakeWordDetector.start(sendSpeechRequest))
+  fs.writeFileSync('/tmp/output.mp3', audioContent)
+  player.play('/tmp/output.mp3', () => wakeWordDetector.start(sendSpeechRequest))
 }
