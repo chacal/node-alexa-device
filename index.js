@@ -13,12 +13,15 @@ const tokenProvider = BPromise.promisifyAll(new TokenProvider('https://api.amazo
 
 const wakeWordDetector = new WakeWordDetector()
 const avsResponseHandler = new AvsResponseHandler(handleDirective, playAudio)
+const SPEECH_RECORDING_TIMEOUT = 15000  // Stop recording speech at latest after this much time has passed
+let speechRecordingTimer = undefined
 
 registerForDirectives()
   .then(() => wakeWordDetector.start(sendSpeechRequest))
 
 
 function sendSpeechRequest(audioStream) {
+  speechRecordingTimer = setTimeout(() => { console.log('Cancelling due to timeout'); onStopCaptureDirective() }, SPEECH_RECORDING_TIMEOUT)
   return tokenProvider.getTokenAsync()
     .then(accessToken => {
       avsRequestUtils.createRecognizeSpeechRequest(audioStream, accessToken)
@@ -46,7 +49,10 @@ function handleDirective(directive) {
   }
 }
 
-function onStopCaptureDirective() { record.stop() }
+function onStopCaptureDirective() {
+  clearTimeout(speechRecordingTimer)
+  record.stop()
+}
 
 
 
