@@ -17,16 +17,25 @@ const avsResponseHandler = new AvsResponseHandler(handleDirective, playAudio)
 const SPEECH_RECORDING_TIMEOUT = 6000  // Stop recording speech at latest after this much time has passed
 let speechRecordingTimer = undefined
 
+const LED_GPIO_PIN = 1
+const led = process.platform === 'linux' ? chipGpio(LED_GPIO_PIN) : noopGpio()
+
 registerForDirectives()
   .then(() => wakeWordDetector.start(sendSpeechRequest))
   .then(() => setInterval(sendPing, AVS_PING_PERIOD))
+  .then(turnLedOff)
+  .then(() => process.on('SIGINT', exit))
 
 function sendSpeechRequest(audioStream) {
+  turnLedOn()
   speechRecordingTimer = setTimeout(() => { console.log('Cancelling due to timeout'); onStopCaptureDirective() }, SPEECH_RECORDING_TIMEOUT)
   return tokenProvider.getTokenAsync()
     .then(accessToken => {
       avsRequestUtils.createRecognizeSpeechRequest(audioStream, accessToken)
-        .on('response', response => avsResponseHandler.handleResponse(response))
+        .on('response', response => {
+          avsResponseHandler.handleResponse(response)
+          turnLedOff()
+        })
     })
 }
 
@@ -69,3 +78,16 @@ function playAudio(audioContentOpt) {
     wakeWordDetector.start(sendSpeechRequest)
   }
 }
+
+
+function chipGpio(pin) { return new require('chip-gpio').Gpio(pin, 'out') }
+function noopGpio() { return { write: _.noop, unexport: _.noop  }}
+
+function exit() {
+  turnLedOff()
+  led.unexport()
+  process.exit()
+}
+
+function turnLedOn() { led.write(0) }
+function turnLedOff() { led.write(1) }
