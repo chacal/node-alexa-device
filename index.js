@@ -14,7 +14,7 @@ const AVS_PING_PERIOD = 5 * 60 * 1000
 
 const wakeWordDetector = new WakeWordDetector()
 const avsResponseHandler = new AvsResponseHandler(handleDirective, playAudio)
-const SPEECH_RECORDING_TIMEOUT = 15000  // Stop recording speech at latest after this much time has passed
+const SPEECH_RECORDING_TIMEOUT = 6000  // Stop recording speech at latest after this much time has passed
 let speechRecordingTimer = undefined
 
 registerForDirectives()
