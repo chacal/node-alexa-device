@@ -10,6 +10,7 @@ const avsRequestUtils = require('./avs-request-utils.js')
 
 const AVS_CREDENTIALS = require('./avs-credentials.json')
 const tokenProvider = BPromise.promisifyAll(new TokenProvider('https://api.amazon.com/auth/o2/token', AVS_CREDENTIALS))
+const AVS_PING_PERIOD = 5 * 60 * 1000
 
 const wakeWordDetector = new WakeWordDetector()
 const avsResponseHandler = new AvsResponseHandler(handleDirective, playAudio)
@@ -18,7 +19,7 @@ let speechRecordingTimer = undefined
 
 registerForDirectives()
   .then(() => wakeWordDetector.start(sendSpeechRequest))
-
+  .then(() => setInterval(sendPing, AVS_PING_PERIOD))
 
 function sendSpeechRequest(audioStream) {
   speechRecordingTimer = setTimeout(() => { console.log('Cancelling due to timeout'); onStopCaptureDirective() }, SPEECH_RECORDING_TIMEOUT)
@@ -29,13 +30,17 @@ function sendSpeechRequest(audioStream) {
     })
 }
 
-
 function registerForDirectives() {
   return tokenProvider.getTokenAsync()
     .then(accessToken => {
       avsRequestUtils.avsGET('/directives', accessToken)
         .on('response', response => avsResponseHandler.handleResponse(response))
     })
+}
+
+function sendPing() {
+  return tokenProvider.getTokenAsync()
+    .then(accessToken => avsRequestUtils.avsPing(accessToken).on('response', response => console.log('Got PING response', response.statusCode)))
 }
 
 

@@ -2,7 +2,8 @@ const http = require('http2')
 const url = require('url')
 const _ = require('lodash')
 
-const AVS_API_URL = 'https://avs-alexa-na.amazon.com/v20160207'
+const AVS_BASE_URL = 'https://avs-alexa-na.amazon.com'
+const AVS_API_URL = AVS_BASE_URL + '/v20160207'
 
 
 function createRecognizeSpeechRequest(audioStream, accessToken) {
@@ -32,8 +33,11 @@ function avsPOSTMultipart(path, boundary, accessToken) {
   )
 }
 
-function avsGET(path, accessToken) {
-  return http.request(_.assign({}, url.parse(AVS_API_URL + path), {
+function avsGET(path, accessToken) { return doAvsGet(AVS_API_URL + path, accessToken) }
+function avsPing(accessToken) { return doAvsGet(AVS_BASE_URL + '/ping', accessToken) }
+
+function doAvsGet(path, accessToken) {
+  return http.request(_.assign({}, url.parse(path), {
     method: 'GET',
     headers: { authorization: 'Bearer ' + accessToken }
   }))
@@ -78,5 +82,6 @@ function uuid() {
 
 module.exports = {
   createRecognizeSpeechRequest,
-  avsGET
+  avsGET,
+  avsPing
 }
