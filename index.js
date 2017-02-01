@@ -46,7 +46,12 @@ function registerForDirectives() {
 
 function sendPing() {
   return tokenProvider.getTokenAsync()
-    .then(accessToken => avsRequestUtils.avsPing(accessToken).on('response', response => console.log('Got PING response', response.statusCode)))
+    .then(accessToken => avsRequestUtils.avsPing(accessToken)
+      .on('response', response => {
+        console.log('Got PING response', response.statusCode)
+        response.socket.reset('NO_ERROR')  // Close the stream to avoid exceeding AVS' max limit of 10 open simultaneous streams
+      })
+    )
 }
 
 
