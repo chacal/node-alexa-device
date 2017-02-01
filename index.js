@@ -10,7 +10,7 @@ const avsRequestUtils = require('./avs-request-utils.js')
 
 const AVS_CREDENTIALS = require('./avs-credentials.json')
 const tokenProvider = BPromise.promisifyAll(new TokenProvider('https://api.amazon.com/auth/o2/token', AVS_CREDENTIALS))
-const AVS_PING_PERIOD = 5 * 60 * 1000
+const AVS_PING_PERIOD = 2 * 60 * 1000
 
 const wakeWordDetector = new WakeWordDetector()
 const avsResponseHandler = new AvsResponseHandler(handleDirective, playAudio)
