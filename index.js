@@ -32,10 +32,7 @@ function sendSpeechRequest(audioStream) {
   return tokenProvider.getTokenAsync()
     .then(accessToken => {
       avsRequestUtils.createRecognizeSpeechRequest(audioStream, accessToken)
-        .on('response', response => {
-          avsResponseHandler.handleResponse(response)
-          turnLedOff()
-        })
+        .on('response', response => avsResponseHandler.handleResponse(response))
     })
 }
 
@@ -66,6 +63,7 @@ function handleDirective(directive) {
 function onStopCaptureDirective() {
   clearTimeout(speechRecordingTimer)
   record.stop()
+  turnLedOff()
 }
 
 
