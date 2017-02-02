@@ -21,10 +21,18 @@ const LED_GPIO_PIN = 1
 const led = process.platform === 'linux' ? chipGpio(LED_GPIO_PIN) : noopGpio()
 
 registerForDirectives()
+  .then(sendSynchronizeState)
   .then(() => wakeWordDetector.start(sendSpeechRequest))
   .then(() => setInterval(sendPing, AVS_PING_PERIOD))
   .then(turnLedOff)
   .then(() => process.on('SIGINT', exit))
+
+function sendSynchronizeState() {
+  return tokenProvider.getTokenAsync()
+    .then(accessToken => avsRequestUtils.createSynchronizeStateRequest(accessToken)
+      .on('response', response => avsResponseHandler.handleResponse(response))
+    )
+}
 
 function sendSpeechRequest(audioStream) {
   turnLedOn()

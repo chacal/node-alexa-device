@@ -15,6 +15,15 @@ http.globalAgent = new http.Agent({
   })
 })
 
+function createSynchronizeStateRequest(accessToken) {
+  const BOUNDARY = uuid()
+  const req = avsPOSTMultipart('/events', BOUNDARY, accessToken)
+  req.write(jsonPart(BOUNDARY, createSynchronizeStateEvent()))
+  req.write('\n')
+  req.end(BOUNDARY + '\n')
+  return req
+}
+
 function createRecognizeSpeechRequest(audioStream, accessToken) {
   const BOUNDARY = uuid()
   const req = avsPOSTMultipart('/events', BOUNDARY, accessToken)
@@ -56,6 +65,63 @@ function doAvsGet(path, accessToken) {
 
 
 
+function createSynchronizeStateEvent() {
+  return {
+    "context": [
+      {
+        "header": {
+          "namespace": "Alerts",
+          "name": "AlertsState"
+        },
+        "payload": {
+          "allAlerts": [],
+          "activeAlerts": []
+        }
+      },
+      {
+        "header": {
+          "namespace": "AudioPlayer",
+          "name": "PlaybackState"
+        },
+        "payload": {
+          "token": "",
+          "offsetInMilliseconds": 0,
+          "playerActivity": "IDLE"
+        }
+      },
+      {
+        "header": {
+          "namespace": "Speaker",
+          "name": "VolumeState"
+        },
+        "payload": {
+          "volume": 50,
+          "muted": false
+        }
+      },
+      {
+        "header": {
+          "namespace": "SpeechSynthesizer",
+          "name": "SpeechState"
+        },
+        "payload": {
+          "token": "",
+          "offsetInMilliseconds": 0,
+          "playerActivity": "FINISHED"
+        }
+      }
+    ],
+    "event": {
+      "header": {
+        "namespace": "System",
+        "name": "SynchronizeState",
+        "messageId": uuid(),
+      },
+      "payload": {}
+    }
+  }
+}
+
 function createRecognizeEvent() {
   return {
     "event": {
@@ -74,7 +140,7 @@ function createRecognizeEvent() {
 }
 
 function jsonPart(boundary, json) {
-  return '--' + boundary + '\nContent-Disposition: form-data; name="metadata\nContent-Type: application/json; charset=UTF-8\n\n' + JSON.stringify(json) + '\n'
+  return '--' + boundary + '\nContent-Disposition: form-data; name="metadata"\nContent-Type: application/json; charset=UTF-8\n\n' + JSON.stringify(json) + '\n'
 }
 
 function audioPartStart(boundary) {
@@ -92,6 +158,7 @@ function uuid() {
 
 
 module.exports = {
+  createSynchronizeStateRequest,
   createRecognizeSpeechRequest,
   avsGET,
   avsPing
