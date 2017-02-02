@@ -46,10 +46,12 @@ function avsGET(path, accessToken) { return doAvsGet(AVS_API_URL + path, accessT
 function avsPing(accessToken) { return doAvsGet(AVS_BASE_URL + '/ping', accessToken) }
 
 function doAvsGet(path, accessToken) {
-  return http.request(_.assign({}, url.parse(path), {
+  const req = http.request(_.assign({}, url.parse(path), {
     method: 'GET',
     headers: { authorization: 'Bearer ' + accessToken }
   }))
+  req.on('error', error => console.log('Got error!', error))
+  return req
 }
 
 
