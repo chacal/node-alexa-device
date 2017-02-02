@@ -45,6 +45,7 @@ function registerForDirectives() {
 }
 
 function sendPing() {
+  console.log('Sending PING..')
   return tokenProvider.getTokenAsync()
     .then(accessToken => avsRequestUtils.avsPing(accessToken)
       .on('response', response => {
