@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "bluebird": "^3.4.6",
+    "bunyan": "^1.8.5",
     "chip-gpio": "^1.1.2",
     "http2": "^3.3.6",
     "lodash": "^4.16.4",

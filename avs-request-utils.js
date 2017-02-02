@@ -4,7 +4,16 @@ const _ = require('lodash')
 
 const AVS_BASE_URL = 'https://avs-alexa-na.amazon.com'
 const AVS_API_URL = AVS_BASE_URL + '/v20160207'
+var bunyan = require('bunyan')
 
+http.globalAgent = new http.Agent({
+  rejectUnauthorized: true,
+  log: bunyan.createLogger({
+    name: "node-alexa",
+    level: 'debug',
+    serializers: http.serializers
+  })
+})
 
 function createRecognizeSpeechRequest(audioStream, accessToken) {
   const BOUNDARY = uuid()
