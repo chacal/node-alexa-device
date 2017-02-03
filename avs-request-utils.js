@@ -60,6 +60,7 @@ function doAvsGet(path, accessToken) {
     headers: { authorization: 'Bearer ' + accessToken }
   }))
   req.on('error', error => console.log('Got error!', error))
+  req.on('close', () => console.log("Closing connection!!"))
   req.setSocketKeepAlive(true)
   req.setTimeout(60 * 60 * 1000, () => console.log("Got socket timeout!"))
   return req
