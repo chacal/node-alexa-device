@@ -48,8 +48,16 @@ function sendSpeechRequest(audioStream) {
 function registerForDirectives() {
   return tokenProvider.getTokenAsync()
     .then(accessToken => {
-      avsRequestUtils.avsGET('/directives', accessToken)
-        .on('response', response => avsResponseHandler.handleResponse(response))
+      const req = avsRequestUtils.avsGET('/directives', accessToken)
+      req.on('socket', socket => {
+        console.log('Socket:', socket)
+        console.log('Connection:', socket.connection)
+        socket.connection.on('close', () => console.log('Got socket close!'))
+        socket.connection.on('end', () => console.log('Got socket end!'))
+        socket.connection.on('error', () => console.log('Got socket error!'))
+        socket.connection.on('finish', () => console.log('Got socket finish!'))
+      })
+      req.on('response', response => avsResponseHandler.handleResponse(response))
     })
 }
 
