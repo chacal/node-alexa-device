@@ -18,6 +18,7 @@ AvsResponseHandler.prototype.handleResponse = function (response) {
   } else if(isOctetStream()) {
     handleBinaryResponse(response)
   } else if(response.statusCode === 204) {
+    console.log('Got response 204')
     self.onAudioCallback(undefined)
   } else {
     console.log(`Unknown content type: ${contentType}, status: ${response.statusCode}, headers: ${JSON.stringify(response.headers)}`)
