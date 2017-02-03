@@ -24,6 +24,7 @@ registerForDirectives()
   .then(sendSynchronizeState)
   .then(() => wakeWordDetector.start(sendSpeechRequest))
   .then(() => setInterval(sendPing, AVS_PING_PERIOD))
+  .then(() => setInterval(sendSynchronizeState, 2 * AVS_PING_PERIOD))
   .then(turnLedOff)
   .then(() => process.on('SIGINT', exit))
 
