@@ -44,7 +44,6 @@ function sendSpeechRequest(audioStream) {
 }
 
 function registerForDirectives() {
-  console.log('GET directives')
   return tokenProvider.getTokenAsync()
     .then(accessToken => {
       const req = avsRequestUtils.avsGET('/directives', accessToken)
