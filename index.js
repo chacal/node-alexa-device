@@ -24,7 +24,6 @@ registerForDirectives()
   .then(sendSynchronizeState)
   .then(() => wakeWordDetector.start(sendSpeechRequest))
   .then(() => setInterval(sendPing, AVS_PING_PERIOD))
-  .then(() => setInterval(sendSynchronizeState, 2 * AVS_PING_PERIOD))
   .then(turnLedOff)
   .then(() => process.on('SIGINT', exit))
 
@@ -49,15 +48,7 @@ function registerForDirectives() {
   return tokenProvider.getTokenAsync()
     .then(accessToken => {
       const req = avsRequestUtils.avsGET('/directives', accessToken)
-      req.on('socket', socket => {
-        console.log('Socket:', socket)
-        console.log('Connection:', socket.connection)
-        socket.connection.on('close', () => console.log('Got socket close!'))
-        socket.connection.on('end', () => console.log('Got socket end!'))
-        socket.connection.on('error', () => console.log('Got socket error!'))
-        socket.connection.on('finish', () => console.log('Got socket finish!'))
-      })
-      req.on('response', response => avsResponseHandler.handleResponse(response))
+      req.on('response', res => avsResponseHandler.handleResponse(res))
     })
 }
 
@@ -67,7 +58,6 @@ function sendPing() {
     .then(accessToken => avsRequestUtils.avsPing(accessToken)
       .on('response', response => {
         console.log('Got PING response', response.statusCode)
-        response.socket.reset('NO_ERROR')  // Close the stream to avoid exceeding AVS' max limit of 10 open simultaneous streams
       })
     )
 }
