@@ -1,18 +1,17 @@
-const http = require('http2')
+const spdy = require('spdy')
+const https = require('https')
 const url = require('url')
 const _ = require('lodash')
 
 const AVS_BASE_URL = 'https://avs-alexa-na.amazon.com'
 const AVS_API_URL = AVS_BASE_URL + '/v20160207'
-var bunyan = require('bunyan')
 
-http.globalAgent = new http.Agent({
-  rejectUnauthorized: true,
-  log: bunyan.createLogger({
-    name: "node-alexa",
-    level: 'debug',
-    serializers: http.serializers
-  })
+const agent = spdy.createAgent({
+  host: 'avs-alexa-na.amazon.com',
+  port: 443,
+  spdy: {
+    maxStreams: 10
+  }
 })
 
 function createSynchronizeStateRequest(accessToken) {
@@ -41,12 +40,13 @@ function createRecognizeSpeechRequest(audioStream, accessToken) {
 
 
 function avsPOSTMultipart(path, boundary, accessToken) {
-  return http.request(_.assign({}, url.parse(AVS_API_URL + path), {
+  return https.request(_.assign({}, url.parse(AVS_API_URL + path), {
       method: 'POST',
       headers: {
         authorization: 'Bearer ' + accessToken,
         'content-type': `multipart/form-data; boundary=${boundary}`
-      }
+      },
+      agent: agent
     })
   )
 }
@@ -55,14 +55,14 @@ function avsGET(path, accessToken) { return doAvsGet(AVS_API_URL + path, accessT
 function avsPing(accessToken) { return doAvsGet(AVS_BASE_URL + '/ping', accessToken) }
 
 function doAvsGet(path, accessToken) {
-  const req = http.request(_.assign({}, url.parse(path), {
+  const req = https.request(_.assign({}, url.parse(path), {
     method: 'GET',
-    headers: { authorization: 'Bearer ' + accessToken }
+    headers: { authorization: 'Bearer ' + accessToken },
+    agent: agent
   }))
   req.on('error', error => console.log('Got error!', error))
   req.on('close', () => console.log("Closing connection!!"))
-  req.setSocketKeepAlive(true)
-  req.setTimeout(60 * 60 * 1000, () => console.log("Got socket timeout!"))
+  req.end()
   return req
 }
 
