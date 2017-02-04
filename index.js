@@ -44,10 +44,13 @@ function sendSpeechRequest(audioStream) {
 }
 
 function registerForDirectives() {
+  console.log('GET directives')
   return tokenProvider.getTokenAsync()
-    .then(accessToken => avsRequestUtils.avsGET('/directives', accessToken)
-      .on('response', res => avsResponseHandler.handleResponse(res))
-    )
+    .then(accessToken => {
+      const req = avsRequestUtils.avsGET('/directives', accessToken)
+      req.on('reconnect', () => registerForDirectives().then(sendSynchronizeState))
+      req.on('response', res => avsResponseHandler.handleResponse(res))
+    })
 }
 
 function sendPing() {

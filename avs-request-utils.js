@@ -6,13 +6,7 @@ const _ = require('lodash')
 const AVS_BASE_URL = 'https://avs-alexa-na.amazon.com'
 const AVS_API_URL = AVS_BASE_URL + '/v20160207'
 
-const agent = spdy.createAgent({
-  host: 'avs-alexa-na.amazon.com',
-  port: 443,
-  spdy: {
-    maxStreams: 10
-  }
-})
+let agent = createAgent()
 
 function createSynchronizeStateRequest(accessToken) {
   const BOUNDARY = uuid()
@@ -60,7 +54,15 @@ function doAvsGet(path, accessToken) {
     headers: { authorization: 'Bearer ' + accessToken },
     agent: agent
   }))
-  req.on('error', error => console.log('Got error!', error))
+  req.on('error', error => {
+    console.log('Got error!', error)
+    if(error.code === 'ECONNRESET') {
+      console.log('Creating new agent')
+      agent.close()
+      agent = createAgent()
+      req.emit('reconnect')
+    }
+  })
   req.end()
   return req
 }
@@ -150,6 +152,15 @@ function audioPartStart(boundary) {
 }
 
 
+function createAgent() {
+  return spdy.createAgent({
+    host: 'avs-alexa-na.amazon.com',
+    port: 443,
+    spdy: {
+      maxStreams: 10
+    }
+  })
+}
 
 function uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
