@@ -13,7 +13,9 @@ function WakeWordDetector() {
 }
 
 WakeWordDetector.prototype.start = function(wakeWordDetectedCallback) {
-  if(this.running) {
+  const self = this
+
+  if(self.running) {
     console.log('Already running wake word detection')
     return
   }
@@ -28,13 +30,13 @@ WakeWordDetector.prototype.start = function(wakeWordDetectedCallback) {
   detector.on('hotword', function(index, hotword) {
     console.log('Wake word detected:', index, hotword)
     mic.unpipe(detector)
-    this.running = false
+    self.running = false
     wakeWordDetectedCallback(mic)
   })
 
   const mic = record.start({ threshold: 0, gain: 20 })
   mic.pipe(detector)
-  this.running = true
+  self.running = true
 }
 
 module.exports = WakeWordDetector
