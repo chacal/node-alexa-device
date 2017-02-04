@@ -38,27 +38,23 @@ function sendSpeechRequest(audioStream) {
   turnLedOn()
   speechRecordingTimer = setTimeout(() => { console.log('Cancelling due to timeout'); onStopCaptureDirective() }, SPEECH_RECORDING_TIMEOUT)
   return tokenProvider.getTokenAsync()
-    .then(accessToken => {
-      avsRequestUtils.createRecognizeSpeechRequest(audioStream, accessToken)
-        .on('response', response => avsResponseHandler.handleResponse(response))
-    })
+    .then(accessToken => avsRequestUtils.createRecognizeSpeechRequest(audioStream, accessToken)
+      .on('response', res => avsResponseHandler.handleResponse(res))
+    )
 }
 
 function registerForDirectives() {
   return tokenProvider.getTokenAsync()
-    .then(accessToken => {
-      const req = avsRequestUtils.avsGET('/directives', accessToken)
-      req.on('response', res => avsResponseHandler.handleResponse(res))
-    })
+    .then(accessToken => avsRequestUtils.avsGET('/directives', accessToken)
+      .on('response', res => avsResponseHandler.handleResponse(res))
+    )
 }
 
 function sendPing() {
   console.log('Sending PING..')
   return tokenProvider.getTokenAsync()
     .then(accessToken => avsRequestUtils.avsPing(accessToken)
-      .on('response', response => {
-        console.log('Got PING response', response.statusCode)
-      })
+      .on('response', res => console.log('Got PING response', res.statusCode))
     )
 }
 
