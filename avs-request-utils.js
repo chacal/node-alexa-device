@@ -61,7 +61,6 @@ function doAvsGet(path, accessToken) {
     agent: agent
   }))
   req.on('error', error => console.log('Got error!', error))
-  req.on('close', () => console.log("Closing connection!!"))
   req.end()
   return req
 }
