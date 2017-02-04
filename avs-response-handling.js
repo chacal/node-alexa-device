@@ -28,7 +28,7 @@ AvsResponseHandler.prototype.handleResponse = function (response) {
   function handleMultipartResponse(response) {
     var form = new multiparty.Form()
     form.on('error', err => {
-      if(err.message !== 'Request aborted') {
+      if(err.message !== 'Request aborted' && err.message !== 'stream ended unexpectedly') {
         console.log('Error parsing response', err)
       }
     })
