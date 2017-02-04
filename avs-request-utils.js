@@ -54,17 +54,20 @@ function doAvsGet(path, accessToken) {
     headers: { authorization: 'Bearer ' + accessToken },
     agent: agent
   }))
-  req.on('error', error => {
-    console.log('Got error!', error)
-    if(error.code === 'ECONNRESET') {
-      console.log('Creating new agent')
+  req.on('error', reqErrorHandler)
+  req.end()
+  return req
+
+  function reqErrorHandler(err) {
+    if(err.code === 'ECONNRESET') {
+      console.log('Reconnecting agent..')
       agent.close()
       agent = createAgent()
       req.emit('reconnect')
+    } else {
+      console.log('Got unknown error!', err)
     }
-  })
-  req.end()
-  return req
+  }
 }
 
 
